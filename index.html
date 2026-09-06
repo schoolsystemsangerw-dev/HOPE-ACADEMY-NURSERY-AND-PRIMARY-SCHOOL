@@ -1163,8 +1163,8 @@ function sendOfficialReport() {
     const subject = `HOPE ACADEMY NURSERY AND PRIMARY SCHOOL OFFICIAL DAILY ATTENDANCE REPORT - (${todayString})`;
     
     // Direct raw URLs from your GitHub repository files
-    const logoUrl = "https://schoolsystemsangerw-dev.github.io/HOPE ACADEMY NURSERY AND PRIMARY SCHOOL/jeremie.png";
-    const stampAndSigUrl = "https://schoolsystemsangerw-dev.github.io/HOPE ACADEMY NURSERY AND PRIMARY SCHOOL/stamp%20jeremie.png";
+    const logoUrl = "./jeremie.png";
+const stampAndSigUrl = "./stamp%20hope.png";
 
     // QR Code generation URL
     const verificationText = encodeURIComponent(`HOPE ACADEMY NURSERY AND PRIMARY SCHOOL OFFICIAL REPORT\nDate: ${todayString}\nPresent: ${presentCount}/${totalStaffCount}\nAbsent: ${absentCount}\nHead Teacher: NTEGEREJIMANA JEREMIE`);
