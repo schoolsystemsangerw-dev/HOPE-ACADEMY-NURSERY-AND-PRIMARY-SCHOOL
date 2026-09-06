@@ -28,7 +28,7 @@
 <body class="bg-slate-100 font-sans text-slate-800 flex flex-col min-h-screen selection:bg-blue-900 selection:text-white">
     <!-- Security Overlay & Authentication Script -->
     <div id="auth-overlay">
-      <h2>GS Gikagati Attendance Portal</h2>
+      <h2>HOPE ACADEMY NURSERY AND PRIMARY</h2>
       <p>Secured Area. Please authenticate...</p>
     </div>
 
@@ -42,8 +42,8 @@
           return;
         }
 
-        const supabaseUrl = https://ybuyizonkqdurlhwyuqt.supabase.co/rest/v1/
-        const supabaseKey = sb_publishable_fv2fCBc85eC6IKi0YvrldA_2ozayAGU
+       const supabaseUrl = "https://ybuyizonkqdurlhwyuqt.supabase.co";
+const supabaseKey = "sb_publishable_fv2fCBc85eC6IKi0YvrldA_2ozayAGU";
 
         try {
           const response = await fetch(`${supabaseUrl}/rest/v1/portal_settings?name=eq.admin&select=password`, {
