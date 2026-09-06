@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal | HOPE ACADEMY N/P</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase UMD CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest & Theme Integration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Password Access Overlay Gate -->
+    <div id="auth-overlay">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl max-w-sm w-full text-center">
+            <h2 class="text-xl font-bold text-amber-400 mb-2">HOPE ACADEMY N/P Staff Portal</h2>
+            <p class="text-xs text-slate-400 mb-4">Enter portal access password to continue</p>
+            <input type="password" id="portalPassword" placeholder="Enter password" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 mb-4 focus:outline-none focus:border-amber-400">
+            <button id="unlockBtn" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg shadow transition text-sm">Unlock Portal</button>
+            <p id="authError" class="mt-3 text-xs text-rose-400 font-semibold"></p>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="bg-slate-800 border-b border-slate-700 py-6 px-4 shadow-md">
+        <div class="max-w-xl mx-auto text-center">
+            <h1 class="text-2xl font-bold tracking-wide text-amber-400 uppercase">HOPE ACADEMY N/P</h1>
+            <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Staff Attendance & Permission Portal</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+        <!-- Moving Announcement / Marquee Banner -->
+        <div class="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-lg overflow-hidden py-2 px-3 shadow-inner">
+            <marquee behavior="scroll" direction="left" scrollamount="5" class="text-xs font-medium text-amber-300">
+                WELCOME TO HOPE ACADEMY N/P. FOR ANY INQUIRIES, ASSISTANCE, OR REPORTING CONCERNS, PLEASE CONTACT THE HEAD TEACHER AT <a href="mailto:nteregejimanajeremie@gmail.com" class="underline hover:text-amber-200">ntegerejimanajeremie@gmail.com</a> OR CALL HIM ON <a href="tel:0789841811" class="underline hover:text-amber-200">0789841811</a>.
+            </marquee>
+        </div>
+
+        <div class="bg-slate-800/85 backdrop-blur border border-slate-700 rounded-xl p-6 shadow-xl">
+            
+            <h2 id="formTitle" class="text-lg font-semibold text-center text-slate-200 mb-6">Daily Verification & Sign-In</h2>
+
+            <!-- Action Type Selection -->
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Select Action</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" id="btnCheckIn" class="py-2.5 px-2 rounded-lg font-semibold text-xs border border-emerald-500 bg-emerald-500/20 text-emerald-400 transition text-center">Check In</button>
+                    <button type="button" id="btnCheckOut" class="py-2.5 px-2 rounded-lg font-semibold text-xs border border-slate-600 text-slate-400 hover:border-amber-500 hover:text-amber-400 transition text-center">Check Out</button>
+                    <button type="button" id="btnPermission" class="py-2.5 px-2 rounded-lg font-semibold text-xs border border-slate-600 text-slate-400 hover:border-sky-500 hover:text-sky-400 transition text-center">Request Leave</button>
+                </div>
+            </div>
+
+            <!-- Staff Name Selector -->
+            <div class="mb-4">
+                <label for="staffSelect" class="block text-xs font-medium text-slate-400 uppercase mb-2">Choose Your Name</label>
+                <select id="staffSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-amber-400">
+                    <option value="">-- Loading Staff Records --</option>
+                </select>
+            </div>
+
+            <!-- SDMS Password Input -->
+            <div class="mb-4">
+                <label for="sdmsPassword" class="block text-xs font-medium text-slate-400 uppercase mb-2">Enter SDMS ID (Password)</label>
+                <input type="password" id="sdmsPassword" placeholder="Enter your secret SDMS ID" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-amber-400">
+            </div>
+
+            <!-- Permission-Specific Fields (Hidden by default) -->
+            <div id="permissionFields" class="hidden space-y-4 mb-4">
+                <div>
+                    <label for="leaveDate" class="block text-xs font-medium text-slate-400 uppercase mb-2">Date Needed Off</label>
+                    <input type="date" id="leaveDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-sky-400">
+                </div>
+                <div>
+                    <label for="leaveEmail" class="block text-xs font-medium text-slate-400 uppercase mb-2">Email to Receive Notification</label>
+                    <input type="email" id="leaveEmail" placeholder="staff.name@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-sky-400">
+                </div>
+                <div>
+                    <label for="leaveReason" class="block text-xs font-medium text-slate-400 uppercase mb-2">Reason for Permission</label>
+                    <textarea id="leaveReason" rows="3" placeholder="Provide details for your absence request..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-sky-400"></textarea>
+                </div>
+            </div>
+
+            <!-- Live Photo Verification (Hidden during permission requests) -->
+            <div id="cameraContainer" class="mb-6">
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Live Photo Verification</label>
+                <div class="relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden flex flex-col items-center justify-center p-2">
+                    <video id="videoElement" autoplay playsinline class="w-full h-48 object-cover rounded-lg bg-black"></video>
+                    <canvas id="canvasElement" class="hidden"></canvas>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" id="submitBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-lg transition">
+                Submit Attendance Record
+            </button>
+
+            <!-- Status Message -->
+            <p id="statusMsg" class="mt-4 text-center text-xs font-semibold"></p>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 border-t border-slate-700 py-4 px-4 text-center text-xs text-slate-400 space-y-1">
+        <p>© 2026 HOPE ACADEMY N/P • All Rights Reserved • Government of Rwanda EAR Private School</p>
+        <p class="text-[11px] text-slate-500">IT CREATOR & DESIGNER: <a href="mailto:schoolsystems.ange.rw@gmail.com" class="hover:text-slate-400 underline">schoolsystems.ange.rw@gmail.com</a></p>
+    </footer>
+
+    <!-- Script Logic -->
+    <script>
+        const PORTAL_PASSWORD = "Hope";
+
+        document.getElementById('unlockBtn').addEventListener('click', () => {
+            const pass = document.getElementById('portalPassword').value.trim();
+            if (pass === PORTAL_PASSWORD) {
+                document.getElementById('auth-overlay').style.display = 'none';
+            } else {
+                document.getElementById('authError').textContent = 'Incorrect password. Access denied.';
+            }
+        });
+
+        document.getElementById('portalPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('unlockBtn').click();
+            }
+        });
+
+        const SUPABASE_URL = 'https://ybuyizonkqdurlhwyuqt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_fv2fCBc85eC6IKi0YvrldA_2ozayAGU';
+        
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let actionType = 'check-in';
+
+        const btnCheckIn = document.getElementById('btnCheckIn');
+        const btnCheckOut = document.getElementById('btnCheckOut');
+        const btnPermission = document.getElementById('btnPermission');
+        
+        const staffSelect = document.getElementById('staffSelect');
+        const sdmsPassword = document.getElementById('sdmsPassword');
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        const formTitle = document.getElementById('formTitle');
+        const permissionFields = document.getElementById('permissionFields');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const leaveDateInput = document.getElementById('leaveDate');
+        const leaveEmailInput = document.getElementById('leaveEmail');
+        const leaveReasonInput = document.getElementById('leaveReason');
+
+        function setActiveButton(selected) {
+            actionType = selected;
+            
+            btnCheckIn.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-slate-600 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition text-center';
+            btnCheckOut.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-slate-600 text-slate-400 hover:border-amber-500 hover:text-amber-400 transition text-center';
+            btnPermission.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-slate-600 text-slate-400 hover:border-sky-500 hover:text-sky-400 transition text-center';
+
+            if (selected === 'check-in') {
+                btnCheckIn.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-emerald-500 bg-emerald-500/20 text-emerald-400 transition text-center';
+                formTitle.textContent = 'Daily Verification & Sign-In';
+                submitBtn.textContent = 'Submit Attendance Record';
+                submitBtn.className = 'w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-lg transition';
+                permissionFields.classList.add('hidden');
+                cameraContainer.classList.remove('hidden');
+            } else if (selected === 'check-out') {
+                btnCheckOut.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-amber-500 bg-amber-500/20 text-amber-400 transition text-center';
+                formTitle.textContent = 'Daily Verification & Sign-Out';
+                submitBtn.textContent = 'Submit Check-Out Record';
+                submitBtn.className = 'w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg shadow-lg transition';
+                permissionFields.classList.add('hidden');
+                cameraContainer.classList.remove('hidden');
+            } else if (selected === 'permission') {
+                btnPermission.className = 'py-2.5 px-2 rounded-lg font-semibold text-xs border border-sky-500 bg-sky-500/20 text-sky-400 transition text-center';
+                formTitle.textContent = 'Request Permission / Leave';
+                submitBtn.textContent = 'Submit Permission Request';
+                submitBtn.className = 'w-full py-3 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow-lg transition';
+                permissionFields.classList.remove('hidden');
+                cameraContainer.classList.add('hidden');
+            }
+            statusMsg.textContent = '';
+        }
+
+        btnCheckIn.addEventListener('click', () => setActiveButton('check-in'));
+        btnCheckOut.addEventListener('click', () => setActiveButton('check-out'));
+        btnPermission.addEventListener('click', () => setActiveButton('permission'));
+
+        async function loadStaff() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('staffs')
+                    .select('sdms_id, first_name, last_name');
+                
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    staffSelect.innerHTML = '<option value="">-- No Staff Found in Database --</option>';
+                    return;
+                }
+
+                staffSelect.innerHTML = '<option value="">-- Select Your Name --</option>';
+                data.forEach(staff => {
+                    const option = document.createElement('option');
+                    option.value = staff.sdms_id;
+                    option.textContent = `${staff.first_name || ''} ${staff.last_name || ''}`.trim();
+                    staffSelect.appendChild(option);
+                });
+            } catch (err) {
+                staffSelect.innerHTML = '<option value="">-- Error Loading Staff --</option>';
+                console.error("Supabase Error Details:", err);
+            }
+        }
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("Camera access denied:", err);
+                statusMsg.textContent = "Warning: Camera access is required for attendance verification.";
+                statusMsg.className = "mt-4 text-center text-xs font-semibold text-amber-400";
+            }
+        }
+
+        loadStaff();
+        initCamera();
+
+        window.addEventListener('online', async () => {
+            console.log('Back online! Checking for pending offline records...');
+            await syncOfflineQueue();
+        });
+
+        async function queueOfflineRecord(table, recordData) {
+            let queue = JSON.parse(localStorage.getItem('offline_attendance_queue') || '[]');
+            queue.push({ table, data: recordData });
+            localStorage.setItem('offline_attendance_queue', JSON.stringify(queue));
+            statusMsg.className = 'mt-4 text-center text-xs font-semibold text-amber-400';
+            statusMsg.textContent = 'Network offline. Record saved locally; will auto-sync when online.';
+        }
+
+        async function syncOfflineQueue() {
+            let queue = JSON.parse(localStorage.getItem('offline_attendance_queue') || '[]');
+            if (queue.length === 0) return;
+
+            let remainingQueue = [];
+            for (let item of queue) {
+                try {
+                    const { error } = await supabaseClient.from(item.table).insert([item.data]);
+                    if (error) remainingQueue.push(item);
+                } catch (e) {
+                    remainingQueue.push(item);
+                }
+            }
+            localStorage.setItem('offline_attendance_queue', JSON.stringify(remainingQueue));
+            if (remainingQueue.length === 0) {
+                console.log('All offline queue items successfully synced!');
+            }
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            const selectedSdms = staffSelect.value;
+            const passwordInput = sdmsPassword.value.trim();
+
+            if (!selectedSdms) {
+                statusMsg.textContent = "Error: Please select your name from the list.";
+                statusMsg.className = "mt-4 text-center text-xs font-semibold text-rose-400";
+                return;
+            }
+
+            if (passwordInput !== selectedSdms) {
+                statusMsg.textContent = "Error: Incorrect SDMS ID password.";
+                statusMsg.className = "mt-4 text-center text-xs font-semibold text-rose-400";
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Processing Request...";
+
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                const localDate = `${year}-${month}-${day}`;
+                const localDateTimeISO = `${localDate}T${hours}:${minutes}:${seconds}+02:00`;
+
+                if (actionType === 'permission') {
+                    const leaveDate = leaveDateInput.value;
+                    const email = leaveEmailInput.value.trim();
+                    const reason = leaveReasonInput.value.trim();
+
+                    if (!leaveDate || !email || !reason) {
+                        throw new Error("Please fill in the target date, notification email, and reason for leave.");
+                    }
+
+                    const payload = {
+                        sdms_id: selectedSdms,
+                        email: email,
+                        leave_date: leaveDate,
+                        reason: reason,
+                        status: 'pending'
+                    };
+
+                    if (!navigator.onLine) {
+                        await queueOfflineRecord('leave_requests', payload);
+                    } else {
+                        const { error: leaveError } = await supabaseClient
+                            .from('leave_requests')
+                            .insert([payload]);
+
+                        if (leaveError) throw leaveError;
+
+                        statusMsg.className = 'mt-4 text-center text-xs font-semibold text-sky-400';
+                        statusMsg.textContent = `Success! Permission request submitted for approval.`;
+                    }
+
+                } else {
+                    const context = canvasElement.getContext('2d');
+                    canvasElement.width = videoElement.videoWidth || 320;
+                    canvasElement.height = videoElement.videoHeight || 240;
+                    context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+                    const blob = await new Promise(resolve => canvasElement.toBlob(resolve, 'image/jpeg', 0.85));
+                    
+                    let photoUrl = null;
+                    if (blob && navigator.onLine) {
+                        const fileName = `${selectedSdms}_${Date.now()}.jpg`;
+                        const filePath = `checkins/${fileName}`;
+
+                        const { data: storageData, error: storageError } = await supabaseClient.storage
+                            .from('attendance-photos')
+                            .upload(filePath, blob, {
+                                contentType: 'image/jpeg',
+                                upsert: false
+                            });
+
+                        if (!storageError) {
+                            const { data: publicUrlData } = supabaseClient.storage
+                                .from('attendance-photos')
+                                .getPublicUrl(filePath);
+                    
+                            photoUrl = publicUrlData ? publicUrlData.publicUrl : null;
+                        }
+                    }
+
+                    const payload = {
+                        sdms_id: selectedSdms,
+                        status: actionType,
+                        date: localDate,
+                        photo_url: photoUrl,
+                        created_at: localDateTimeISO
+                    };
+
+                    if (!navigator.onLine) {
+                        await queueOfflineRecord('attendances', payload);
+                    } else {
+                        const { error: insertError } = await supabaseClient
+                            .from('attendances')
+                            .insert([payload]);
+
+                        if (insertError) throw insertError;
+
+                        statusMsg.className = 'mt-4 text-center text-xs font-semibold text-emerald-400';
+                        statusMsg.textContent = `Success! Attendance record and verification photo saved.`;
+                    }
+                }
+
+                setTimeout(() => { location.reload(); }, 3000);
+
+            } catch (err) {
+                statusMsg.className = 'mt-4 text-center text-xs font-semibold text-rose-400';
+                statusMsg.textContent = `Error: ${err.message}`;
+                submitBtn.disabled = false;
+                setActiveButton(actionType);
+            }
+        });
+    </script>
+</body>
+</html>
