@@ -1379,21 +1379,19 @@ const stampAndSigUrl = "./stamp%20hope.png";
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                // Load both logo and stamp securely
-                const logoImg = new Image();
-                logoImg.src = 'gikagati.png';
+                // Load both logo and stamp securely for Hope Academy
+const logoImg = new Image();
+logoImg.src = './hope.png';
 
-                logoImg.onload = function() {
-                    const stampImg = new Image();
-                    stampImg.src = 'stamp gikagati.png';
+logoImg.onload = function() {
+    // Stamp image is currently null/missing, so we bypass loading it directly
+    buildPDFWithImages(logoImg, null, qrDataUrl);
+};
 
-                    stampImg.onload = function() {
-                        buildPDFWithImages(logoImg, stampImg, qrDataUrl);
-                    };
-                    stampImg.onerror = function() {
-                        buildPDFWithImages(logoImg, null, qrDataUrl);
-                    };
-                };
+logoImg.onerror = function() {
+    console.warn("Could not load logo image: ./hope.png");
+    buildPDFWithImages(null, null, qrDataUrl);
+};
                 logoImg.onerror = function() {
                     buildPDFWithImages(null, null, qrDataUrl);
                 };
