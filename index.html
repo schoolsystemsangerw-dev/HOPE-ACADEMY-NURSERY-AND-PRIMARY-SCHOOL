@@ -604,7 +604,7 @@ let absentCount = Math.max(0, cachedStaff.length - presentCount - activeLeaveIds
                         } else if (record.status === 'check-in' && record.created_at) {
                             const checkInDate = new Date(record.created_at);
                             const totalMinutes = checkInDate.getHours() * 60 + checkInDate.getMinutes();
-                            const cutoffMinutes = 7 * 60 + 30; // 7:30 AM limit
+                            const cutoffMinutes = 7 * 60 + 30; // 7:00 AM limit
                             const timeFormatted = checkInDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                             
                             if (totalMinutes > cutoffMinutes) {
