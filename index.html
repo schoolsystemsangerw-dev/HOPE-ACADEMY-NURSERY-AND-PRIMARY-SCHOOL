@@ -417,9 +417,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_fv2fCBc85eC6IKi0YvrldA_2ozayAGU';
 
             try {
                 // 1. Fetch staff members
-                const { data: staffData, error: staffError } = await supabaseClient
-                    .from('staffs')
-                    .select('*');
+               const { data: staffData, error: staffError } = await supabaseClient
+            .from('staffs')
+            .select('*')
+            .eq('position_name', 'Teacher');
 
                 if (staffError) throw staffError;
                 cachedStaff = staffData || [];
