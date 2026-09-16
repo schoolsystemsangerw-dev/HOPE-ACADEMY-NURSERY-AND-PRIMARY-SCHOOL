@@ -213,8 +213,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_fv2fCBc85eC6IKi0YvrldA_2ozayAGU';
         async function loadStaff() {
             try {
                 const { data, error } = await supabaseClient
-                    .from('staffs')
-                    .select('sdms_id, first_name, last_name');
+                .from('staffs')
+                .select('sdms_id, first_name, last_name')
+                .eq('position_name', 'Teacher');
                 
                 if (error) throw error;
 
